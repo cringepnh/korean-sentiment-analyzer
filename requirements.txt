@@ -2,6 +2,7 @@ pandas
 numpy
 scikit-learn
 transformers
-torch --index-url https://download.pytorch.org/whl/cu126
+torch
 datasets
 accelerate
+huggingface_hub

@@ -4,20 +4,20 @@ Upload the trained sentiment model to HuggingFace Hub.
 Run this AFTER training is complete (models/sentiment-model/ must exist).
 
 Steps:
-  1. pip install huggingface_hub
-  2. Get your token from https://huggingface.co/settings/tokens
-  3. Run: python upload_to_hub.py
+  1. Get your token from https://huggingface.co/settings/tokens  (type: Write)
+  2. Run: python upload_to_hub.py
+  3. Paste your token when prompted
 """
 
 import os
-from huggingface_hub import HfApi, create_repo
+from huggingface_hub import HfApi, create_repo, login
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 # ============================================================
-# CONFIGURATION — set your HuggingFace username and repo name
+# CONFIGURATION — your HuggingFace username and repo name
 # ============================================================
 HF_USERNAME = "cringepnh"
-REPO_NAME = "koelectra-korean-sentiment"  # will be: cringepnh/koelectra-korean-sentiment
+REPO_NAME = "koelectra-korean-sentiment"
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models", "sentiment-model")
 
 FULL_REPO_ID = f"{HF_USERNAME}/{REPO_NAME}"
@@ -28,10 +28,12 @@ def upload():
     print(f"   Destination: https://huggingface.co/{FULL_REPO_ID}")
     print()
 
-    # Step 1: Login check
-    # You need to be logged in via: huggingface-cli login
-    # Or set the HF_TOKEN environment variable
-    api = HfApi()
+    # Step 1: Login with your HuggingFace token
+    # Get your token at: https://huggingface.co/settings/tokens  (type: Write)
+    token = input("🔑 Paste your HuggingFace token here: ").strip()
+    login(token=token)
+    print("   ✅ Logged in successfully.")
+    print()
 
     # Step 2: Create the repository on HuggingFace (if it doesn't exist)
     print("📁 Creating repository (if not exists)...")

@@ -1,5 +1,8 @@
 # 🎬 Korean Movie Review Sentiment Analyzer
 
+[![HuggingFace Model](https://img.shields.io/badge/🤗%20HuggingFace-cringepnh%2Fkoelectra--korean--sentiment-blue)](https://huggingface.co/cringepnh/koelectra-korean-sentiment)
+[![GitHub](https://img.shields.io/badge/GitHub-cringepnh%2Fkorean--sentiment--analyzer-black?logo=github)](https://github.com/cringepnh/korean-sentiment-analyzer)
+
 A machine learning project that fine-tunes a pretrained Korean language model ([KoELECTRA](https://huggingface.co/monologg/koelectra-base-finetuned-sentiment)) on the **NSMC dataset** (200,000 Korean movie reviews) to classify reviews as **positive** or **negative**.
 
 > Built as a portfolio project to demonstrate practical NLP and transfer learning skills.
@@ -287,6 +290,7 @@ Building this project taught me:
 - **Pandas & NumPy** — Data manipulation
 - **scikit-learn** — Evaluation metrics
 - **NSMC Dataset** — Korean sentiment benchmark
+- **HuggingFace Hub** — Model hosting ([view model](https://huggingface.co/cringepnh/koelectra-korean-sentiment))
 
 ---
 
