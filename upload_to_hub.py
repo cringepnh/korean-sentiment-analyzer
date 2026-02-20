@@ -58,6 +58,19 @@ def upload():
     model.push_to_hub(FULL_REPO_ID)
     tokenizer.push_to_hub(FULL_REPO_ID)
 
+    # Step 5: Upload the model card (README.md on HuggingFace)
+    model_card_path = os.path.join(os.path.dirname(__file__), "hf_model_card.md")
+    if os.path.exists(model_card_path):
+        print("\n📝 Uploading model card...")
+        api = HfApi()
+        api.upload_file(
+            path_or_fileobj=model_card_path,
+            path_in_repo="README.md",
+            repo_id=FULL_REPO_ID,
+            repo_type="model",
+        )
+        print("   ✅ Model card uploaded.")
+
     print(f"\n✅ Done! Your model is now live at:")
     print(f"   https://huggingface.co/{FULL_REPO_ID}")
     print()

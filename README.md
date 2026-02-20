@@ -32,10 +32,10 @@ A machine learning project that fine-tunes a pretrained Korean language model ([
 **Example:**
 ```
 Input:  "이 영화 정말 재미있어요! 배우들 연기도 최고!"
-Output: Positive ✅ (confidence: 92.3%)
+Output: Positive ✅ (confidence: 99.4%)
 
 Input:  "완전 별로... 시간 낭비했다."
-Output: Negative ❌ (confidence: 88.7%)
+Output: Negative ❌ (confidence: 99.5%)
 ```
 
 ---
@@ -219,8 +219,9 @@ korean-sentiment-analyzer/
 │   └── ratings_test.txt        # 50k test reviews (TSV)
 ├── models/
 │   └── sentiment-model/        # Saved trained model (generated after training)
-├── notebooks/                  # Jupyter notebooks (for experimentation)
 ├── main.py                     # Complete ML pipeline (all 8 steps)
+├── upload_to_hub.py            # Script to upload model to HuggingFace Hub
+├── hf_model_card.md            # Model card for HuggingFace
 ├── requirements.txt            # Python dependencies
 ├── .gitignore
 └── README.md
@@ -231,6 +232,7 @@ korean-sentiment-analyzer/
 | File | Description |
 |------|-------------|
 | `main.py` | The complete pipeline — from data loading to model saving |
+| `upload_to_hub.py` | Uploads trained model to HuggingFace Hub |
 | `requirements.txt` | All required Python packages |
 | `data/ratings_train.txt` | 150,000 labeled Korean movie reviews for training |
 | `data/ratings_test.txt` | 50,000 labeled Korean movie reviews for evaluation |
