@@ -1,0 +1,68 @@
+"""
+Upload the trained sentiment model to HuggingFace Hub.
+
+Run this AFTER training is complete (models/sentiment-model/ must exist).
+
+Steps:
+  1. pip install huggingface_hub
+  2. Get your token from https://huggingface.co/settings/tokens
+  3. Run: python upload_to_hub.py
+"""
+
+import os
+from huggingface_hub import HfApi, create_repo
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+# ============================================================
+# CONFIGURATION — set your HuggingFace username and repo name
+# ============================================================
+HF_USERNAME = "cringepnh"
+REPO_NAME = "koelectra-korean-sentiment"  # will be: cringepnh/koelectra-korean-sentiment
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "models", "sentiment-model")
+
+FULL_REPO_ID = f"{HF_USERNAME}/{REPO_NAME}"
+
+
+def upload():
+    print("🚀 Uploading model to HuggingFace Hub...")
+    print(f"   Destination: https://huggingface.co/{FULL_REPO_ID}")
+    print()
+
+    # Step 1: Login check
+    # You need to be logged in via: huggingface-cli login
+    # Or set the HF_TOKEN environment variable
+    api = HfApi()
+
+    # Step 2: Create the repository on HuggingFace (if it doesn't exist)
+    print("📁 Creating repository (if not exists)...")
+    create_repo(
+        repo_id=FULL_REPO_ID,
+        repo_type="model",
+        exist_ok=True,  # Don't error if it already exists
+    )
+    print("   ✅ Repository ready.")
+
+    # Step 3: Load the saved model and tokenizer
+    print(f"\n📦 Loading model from: {MODEL_DIR}")
+    if not os.path.exists(MODEL_DIR):
+        print("❌ Model not found! Run python main.py first to train and save the model.")
+        return
+
+    # Step 4: Push model and tokenizer to the Hub
+    print("\n⏳ Uploading model weights (this may take a few minutes)...")
+    model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
+
+    model.push_to_hub(FULL_REPO_ID)
+    tokenizer.push_to_hub(FULL_REPO_ID)
+
+    print(f"\n✅ Done! Your model is now live at:")
+    print(f"   https://huggingface.co/{FULL_REPO_ID}")
+    print()
+    print("   You can load it from anywhere with:")
+    print(f'   model = AutoModelForSequenceClassification.from_pretrained("{FULL_REPO_ID}")')
+    print(f'   tokenizer = AutoTokenizer.from_pretrained("{FULL_REPO_ID}")')
+
+
+if __name__ == "__main__":
+    upload()

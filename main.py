@@ -20,11 +20,13 @@ import os
 import numpy as np
 import pandas as pd
 from datasets import Dataset
+from tqdm.auto import tqdm
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
     TrainingArguments,
     Trainer,
+    EarlyStoppingCallback,
 )
 from sklearn.metrics import (
     accuracy_score,
@@ -38,7 +40,7 @@ from sklearn.metrics import (
 # ============================================================
 # Set this to True to train on the FULL dataset (~150k samples).
 # Set to False to use a small 5,000-sample subset for quick testing.
-FULL_TRAINING = False
+FULL_TRAINING = True
 
 # How many samples to use for quick testing
 QUICK_SAMPLE_SIZE = 5000
@@ -221,11 +223,16 @@ def tokenize_data(train_df, test_df):
             max_length=128,
         )
 
-    # Apply tokenization to all reviews at once (batched for speed)
+    # Apply tokenization to all reviews at once (batched for speed).
+    # tqdm wraps each step to show a progress bar in the terminal.
     print("\n⏳ Tokenizing training data...")
-    train_dataset = train_dataset.map(tokenize_function, batched=True)
+    with tqdm(total=1, desc="Tokenizing train", unit="split") as pbar:
+        train_dataset = train_dataset.map(tokenize_function, batched=True)
+        pbar.update(1)
     print("⏳ Tokenizing test data...")
-    test_dataset = test_dataset.map(tokenize_function, batched=True)
+    with tqdm(total=1, desc="Tokenizing test", unit="split") as pbar:
+        test_dataset = test_dataset.map(tokenize_function, batched=True)
+        pbar.update(1)
 
     # Tell HuggingFace which columns are the model inputs
     # The model needs: input_ids, attention_mask, and labels
@@ -302,12 +309,13 @@ def train_model(train_dataset, test_dataset):
     training_args = TrainingArguments(
         # Where to save checkpoints during training
         output_dir="./results",
-        # How many times to go through the entire dataset
-        # More epochs = model sees the data more times = potentially better
-        num_train_epochs=3,
+        # How many times to go through the entire dataset.
+        # We use 10 epochs max, but early stopping will halt training
+        # automatically if the model stops improving.
+        num_train_epochs=10,
         # How many samples to process at once
         # Larger batch = faster training but uses more GPU memory
-        per_device_train_batch_size=16,
+        per_device_train_batch_size=32,
         per_device_eval_batch_size=64,
         # How quickly the model learns (too high = unstable, too low = too slow)
         learning_rate=2e-5,
@@ -322,8 +330,13 @@ def train_model(train_dataset, test_dataset):
         save_steps=200,
         # Only keep the best 2 checkpoints to save disk space
         save_total_limit=2,
-        # Load the best model at the end (based on evaluation loss)
+        # Load the best model at the end (required for EarlyStoppingCallback)
         load_best_model_at_end=True,
+        # Use eval_loss as the metric to decide the "best" checkpoint.
+        # EarlyStoppingCallback watches this: if it doesn't improve for
+        # 2 evaluations in a row, training stops automatically.
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,  # Lower eval_loss = better
         # Log training metrics every 50 steps
         logging_steps=50,
         # Disable external reporting (we just want console output)
@@ -340,6 +353,12 @@ def train_model(train_dataset, test_dataset):
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
         compute_metrics=compute_metrics,
+        callbacks=[
+            # EarlyStoppingCallback stops training automatically if eval_loss
+            # does not improve for 2 consecutive evaluations (patience=2).
+            # This prevents wasting time on epochs that no longer help.
+            EarlyStoppingCallback(early_stopping_patience=2)
+        ],
     )
 
     # Check if there's a checkpoint to resume from.

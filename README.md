@@ -109,17 +109,18 @@ Pretrained KoELECTRA (knows Korean)
         +
 Classification Head (2 outputs: negative, positive)
         ↓
-Train on NSMC for 3 epochs
+Train on NSMC for up to 10 epochs (early stopping on eval_loss)
         ↓
-Fine-tuned Sentiment Classifier
+Fine-tuned Sentiment Classifier (90.2% accuracy)
 ```
 
 ### Training Hyperparameters
 | Parameter | Value | Why |
 |-----------|-------|-----|
 | Learning rate | 2e-5 | Standard for fine-tuning transformers |
-| Batch size | 16 | Balance between speed and memory |
-| Epochs | 3 | Standard for fine-tuning (more may overfit) |
+| Batch size | 32 | Balance between speed and memory |
+| Max epochs | 10 (early stopping) | Stops automatically when eval_loss stops improving |
+| Early stopping patience | 2 | Stop if no improvement for 2 evaluations in a row |
 | Max token length | 128 | Most Korean reviews are shorter than this |
 | Warmup steps | 100 | Prevents unstable early training |
 | Weight decay | 0.01 | Regularization to prevent overfitting |
@@ -128,17 +129,24 @@ Fine-tuned Sentiment Classifier
 
 ## Results
 
-*Results from training on 5,000 samples (quick test mode):*
+*Trained on the full dataset: **146,182 Korean movie reviews** (after cleaning).*
 
-> **Note:** For significantly better results, train on the full 150,000-sample dataset by setting `FULL_TRAINING = True` in `main.py`.
+| Metric    | Score  |
+|-----------|--------|
+| Accuracy  | **90.2%** |
+| Precision | **90.2%** |
+| Recall    | **90.3%** |
+| F1 Score  | **90.3%** |
+
+This result is competitive with published results on the NSMC benchmark (typical range: 88–92%).
 
 ### Sample Predictions
 | Review (Korean) | Translation | Predicted | Confidence |
 |-----------------|-------------|-----------|------------|
-| 이 영화 정말 재미있어요! 배우들 연기도 최고! | This movie is really fun! The acting is the best! | ✅ Positive | 92% |
-| 완전 별로... 시간 낭비했다. | Totally bad... waste of time. | ❌ Negative | 89% |
-| 역대 최고의 한국 영화! 꼭 보세요! | Best Korean movie ever! Must watch! | ✅ Positive | 94% |
-| 스토리가 너무 지루하고 연기가 어색해요. | The story is boring and the acting is awkward. | ❌ Negative | 87% |
+| 이 영화 정말 재미있어요! 배우들 연기도 최고! | This movie is really fun! The acting is the best! | ✅ Positive | 99.4% |
+| 완전 별로... 시간 낭비했다. | Totally bad... waste of time. | ❌ Negative | 99.5% |
+| 역대 최고의 한국 영화! 꼭 보세요! | Best Korean movie ever! Must watch! | ✅ Positive | 99.3% |
+| 스토리가 너무 지루하고 연기가 어색해요. | The story is boring and the acting is awkward. | ❌ Negative | 99.5% |
 
 ---
 
@@ -151,7 +159,7 @@ Fine-tuned Sentiment Classifier
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/korean-sentiment-analyzer.git
+git clone https://github.com/cringepnh/korean-sentiment-analyzer.git
 cd korean-sentiment-analyzer
 
 # Create virtual environment (recommended)
@@ -172,19 +180,12 @@ This will:
 1. Load the NSMC dataset (200k Korean movie reviews)
 2. Clean and preprocess the data
 3. Tokenize reviews using KoELECTRA's tokenizer
-4. Fine-tune the model (5,000 samples by default)
+4. Fine-tune the model on the full 146k training set
 5. Evaluate and print metrics (accuracy, F1, confusion matrix)
 6. Test on sample Korean reviews
 7. Save the trained model to `models/`
 
-### Train on Full Dataset
-Edit `main.py` line 41:
-```python
-FULL_TRAINING = True   # Change from False to True
-```
-Then run `python main.py` again. Training on 150k samples takes:
-- **~30-40 minutes** with GPU (Google Colab recommended)
-- **~4-6 hours** on CPU
+> 💡 To do a quick test run first, set `FULL_TRAINING = False` in `main.py` — trains on 5,000 samples in ~5 minutes.
 
 > 💡 Training supports **checkpoint resume** — if you stop and restart, it continues from the last saved checkpoint automatically.
 
